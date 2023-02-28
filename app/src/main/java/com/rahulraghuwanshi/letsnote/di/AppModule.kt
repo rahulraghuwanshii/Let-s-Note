@@ -7,6 +7,7 @@ import com.rahulraghuwanshi.letsnote.feature_notes.data.repository.NoteRepositor
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.repository.NoteRepository
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.use_case.AddNoteUseCase
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.use_case.DeletedNoteUseCase
+import com.rahulraghuwanshi.letsnote.feature_notes.domain.use_case.GetNoteUseCase
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.use_case.GetNotesUseCase
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.use_case.NotesUseCases
 import dagger.Module
@@ -41,7 +42,8 @@ object AppModule {
         return NotesUseCases(
             getNotesUseCase = GetNotesUseCase(repository),
             deletedNoteUseCase = DeletedNoteUseCase(repository),
-            addNoteUseCase = AddNoteUseCase(repository)
+            addNoteUseCase = AddNoteUseCase(repository),
+            getNoteUseCase = GetNoteUseCase(repository)
         )
     }
 }
