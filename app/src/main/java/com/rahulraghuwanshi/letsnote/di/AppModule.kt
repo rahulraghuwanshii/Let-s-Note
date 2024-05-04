@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.DatabaseEncryptionUtils
 import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.NoteDatabase
+import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.PassphraseUtils
 import com.rahulraghuwanshi.letsnote.feature_notes.data.repository.NoteRepositoryImpl
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.repository.NoteRepository
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.use_case.AddNoteUseCase
@@ -16,7 +17,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
-import java.nio.charset.StandardCharsets
 import javax.inject.Singleton
 
 @Module
@@ -25,9 +25,18 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSupportOpenHelperFactory(application: Application): SupportOpenHelperFactory {
+    fun providePassphraseUtils(application: Application): PassphraseUtils {
+        return PassphraseUtils(application)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSupportOpenHelperFactory(
+        application: Application,
+        passphraseUtils: PassphraseUtils
+    ): SupportOpenHelperFactory {
         System.loadLibrary("sqlcipher") // This must be called before doing anything with sqlcipher.
-        val passphrase = "Password1!".toByteArray(StandardCharsets.UTF_16)
+        val passphrase = passphraseUtils.getPassphraseOrGenerateIfMissing().value
         val state =
             DatabaseEncryptionUtils.getDatabaseState(application, NoteDatabase.DATABASE_NAME)
 

@@ -86,4 +86,9 @@ dependencies {
 
     implementation 'net.zetetic:sqlcipher-android:4.5.7@aar'
     implementation 'androidx.sqlite:sqlite:2.2.0'
+
+    // For EncryptedSharedPreferences
+    implementation "androidx.security:security-crypto:1.0.0"
+    // For MasterKey
+    implementation "androidx.security:security-crypto-ktx:1.1.0-alpha06"
 }
