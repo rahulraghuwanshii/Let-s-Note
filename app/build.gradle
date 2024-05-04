@@ -83,4 +83,7 @@ dependencies {
 
     // Kotlin Extensions and Coroutines support for Room
     implementation "androidx.room:room-ktx:2.5.0"
+
+    implementation 'net.zetetic:sqlcipher-android:4.5.7@aar'
+    implementation 'androidx.sqlite:sqlite:2.2.0'
 }

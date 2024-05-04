@@ -2,6 +2,7 @@ package com.rahulraghuwanshi.letsnote.di
 
 import android.app.Application
 import androidx.room.Room
+import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.DatabaseEncryptionUtils
 import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.NoteDatabase
 import com.rahulraghuwanshi.letsnote.feature_notes.data.repository.NoteRepositoryImpl
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.repository.NoteRepository
@@ -14,6 +15,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
+import java.nio.charset.StandardCharsets
 import javax.inject.Singleton
 
 @Module
@@ -22,12 +25,37 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoteDatabase(application: Application): NoteDatabase {
+    fun provideSupportOpenHelperFactory(application: Application): SupportOpenHelperFactory {
+        System.loadLibrary("sqlcipher") // This must be called before doing anything with sqlcipher.
+        val passphrase = "Password1!".toByteArray(StandardCharsets.UTF_16)
+        val state =
+            DatabaseEncryptionUtils.getDatabaseState(application, NoteDatabase.DATABASE_NAME)
+
+        // Check if db is unencrypted then encrypt the db.
+        if (state == DatabaseEncryptionUtils.State.UNENCRYPTED) {
+            DatabaseEncryptionUtils.encrypt(
+                application,
+                NoteDatabase.DATABASE_NAME,
+                passphrase
+            )
+        }
+        val factory = SupportOpenHelperFactory(passphrase)
+
+        return factory
+    }
+
+    @Provides
+    @Singleton
+    fun provideNoteDatabase(
+        application: Application,
+        factory: SupportOpenHelperFactory
+    ): NoteDatabase {
+
         return Room.databaseBuilder(
             application,
             NoteDatabase::class.java,
             NoteDatabase.DATABASE_NAME
-        ).build()
+        ).openHelperFactory(factory).build()
     }
 
     @Provides
