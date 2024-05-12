@@ -37,17 +37,8 @@ object AppModule {
     ): SupportOpenHelperFactory {
         System.loadLibrary("sqlcipher") // This must be called before doing anything with sqlcipher.
         val passphrase = passphraseUtils.getPassphraseOrGenerateIfMissing().value
-        val state =
-            DatabaseEncryptionUtils.getDatabaseState(application, NoteDatabase.DATABASE_NAME)
+        DatabaseEncryptionUtils.ensureDatabaseEncrypted(application,NoteDatabase.DATABASE_NAME,passphrase)
 
-        // Check if db is unencrypted then encrypt the db.
-        if (state == DatabaseEncryptionUtils.State.UNENCRYPTED) {
-            DatabaseEncryptionUtils.encrypt(
-                application,
-                NoteDatabase.DATABASE_NAME,
-                passphrase
-            )
-        }
         val factory = SupportOpenHelperFactory(passphrase)
 
         return factory

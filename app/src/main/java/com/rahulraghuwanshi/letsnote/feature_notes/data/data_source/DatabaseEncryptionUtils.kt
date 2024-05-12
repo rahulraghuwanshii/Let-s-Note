@@ -1,5 +1,6 @@
 package com.rahulraghuwanshi.letsnote.feature_notes.data.data_source
 
+import android.app.Application
 import android.content.Context
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import net.zetetic.database.sqlcipher.SQLiteStatement
@@ -18,6 +19,19 @@ object DatabaseEncryptionUtils {
         DOES_NOT_EXIST, UNENCRYPTED, ENCRYPTED
     }
 
+    fun ensureDatabaseEncrypted(application: Application,dbName: String,passphrase: ByteArray){
+        val state = getDatabaseState(application, dbName)
+
+        // Check if db is unencrypted then encrypt the db.
+        if (state == State.UNENCRYPTED) {
+            encrypt(
+                application,
+                dbName,
+                passphrase
+            )
+        }
+    }
+
     /**
      * Determine whether or not this database appears to be encrypted, based
      * on whether we can open it without a passphrase.
@@ -27,7 +41,7 @@ object DatabaseEncryptionUtils {
      * etc.
      * @return the detected state of the database
      */
-    fun getDatabaseState(context: Context, dbName: String?): State {
+    private fun getDatabaseState(context: Context, dbName: String?): State {
         return getDatabaseState(context.getDatabasePath(dbName))
     }
 
