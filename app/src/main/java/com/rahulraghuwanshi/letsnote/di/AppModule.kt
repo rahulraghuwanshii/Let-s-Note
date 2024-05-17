@@ -2,7 +2,9 @@ package com.rahulraghuwanshi.letsnote.di
 
 import android.app.Application
 import androidx.room.Room
+import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.DatabaseEncryptionUtils
 import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.NoteDatabase
+import com.rahulraghuwanshi.letsnote.feature_notes.data.data_source.PassphraseUtils
 import com.rahulraghuwanshi.letsnote.feature_notes.data.repository.NoteRepositoryImpl
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.repository.NoteRepository
 import com.rahulraghuwanshi.letsnote.feature_notes.domain.use_case.AddNoteUseCase
@@ -14,6 +16,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import javax.inject.Singleton
 
 @Module
@@ -22,12 +25,37 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoteDatabase(application: Application): NoteDatabase {
+    fun providePassphraseUtils(application: Application): PassphraseUtils {
+        return PassphraseUtils(application)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSupportOpenHelperFactory(
+        application: Application,
+        passphraseUtils: PassphraseUtils
+    ): SupportOpenHelperFactory {
+        System.loadLibrary("sqlcipher") // This must be called before doing anything with sqlcipher.
+        val passphrase = passphraseUtils.getPassphraseOrGenerateIfMissing().value
+        DatabaseEncryptionUtils.ensureDatabaseEncrypted(application,NoteDatabase.DATABASE_NAME,passphrase)
+
+        val factory = SupportOpenHelperFactory(passphrase)
+
+        return factory
+    }
+
+    @Provides
+    @Singleton
+    fun provideNoteDatabase(
+        application: Application,
+        factory: SupportOpenHelperFactory
+    ): NoteDatabase {
+
         return Room.databaseBuilder(
             application,
             NoteDatabase::class.java,
             NoteDatabase.DATABASE_NAME
-        ).build()
+        ).openHelperFactory(factory).build()
     }
 
     @Provides
